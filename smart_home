@@ -1,0 +1,105 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+class Device {
+protected:
+    string name;
+    bool status;
+public:
+    Device(string name) : name(name), status(false) {}
+    virtual void turnOn() { status = true; cout << name << " is now ON." << endl; }
+    virtual void turnOff() { status = false; cout << name << " is now OFF." << endl; }
+    virtual void showStatus() { cout << name << " is " << (status ? "ON" : "OFF") << endl; }
+    string getName() { return name; }
+};
+
+class SmartLight : public Device {
+public:
+    SmartLight(string name) : Device(name) {}
+};
+
+class Thermostat : public Device {
+private:
+    int temperature;
+public:
+    Thermostat(string name, int temp) : Device(name), temperature(temp) {}
+    void setTemperature(int temp) { temperature = temp; cout << name << " temperature set to " << temperature << " degrees." << endl; }
+    void showStatus() override { cout << name << " is " << (status ? "ON" : "OFF") << " at " << temperature << " degrees." << endl; }
+};
+
+class SmartHome {
+private:
+    vector<Device*> devices;
+public:
+    void addDevice(Device* device) { devices.push_back(device); }
+    void listDevices() {
+        cout << "Devices in the Smart Home:" << endl;
+        for (auto& device : devices) {
+            device->showStatus();
+        }
+    }
+    Device* findDevice(string name) {
+        for (auto& device : devices) {
+            if (device->getName() == name) return device;
+        }
+        return nullptr;
+    }
+};
+
+int main() {
+    SmartHome home;
+    home.addDevice(new SmartLight("Living Room Light"));
+    home.addDevice(new Thermostat("Thermostat", 22));
+    
+    int choice;
+    string name;
+    int temp;
+    
+    while (true) {
+        cout << "\nSmart Home System" << endl;
+        cout << "1. List Devices" << endl;
+        cout << "2. Turn On Device" << endl;
+        cout << "3. Turn Off Device" << endl;
+        cout << "4. Set Thermostat Temperature" << endl;
+        cout << "5. Exit" << endl;
+        cout << "Enter choice: ";
+        cin >> choice;
+        cin.ignore();
+        
+        switch (choice) {
+            case 1:
+                home.listDevices();
+                break;
+            case 2:
+                cout << "Enter device name: ";
+                getline(cin, name);
+                if (home.findDevice(name)) home.findDevice(name)->turnOn();
+                else cout << "Device not found!" << endl;
+                break;
+            case 3:
+                cout << "Enter device name: ";
+                getline(cin, name);
+                if (home.findDevice(name)) home.findDevice(name)->turnOff();
+                else cout << "Device not found!" << endl;
+                break;
+            case 4:
+                cout << "Enter thermostat name: ";
+                getline(cin, name);
+                if (Thermostat* t = dynamic_cast<Thermostat*>(home.findDevice(name))) {
+                    cout << "Enter new temperature: ";
+                    cin >> temp;
+                    t->setTemperature(temp);
+                } else {
+                    cout << "Thermostat not found!" << endl;
+                }
+                break;
+            case 5:
+                return 0;
+            default:
+                cout << "Invalid choice!" << endl;
+        }
+    }
+}
